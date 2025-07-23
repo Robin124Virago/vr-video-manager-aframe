@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>VR Video A-Frame</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎥</text></svg>">
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="script.js"></script>
+</head>
+<body>
+  <a-scene>
+    <!-- Camera cu look-controls pentru mouse -->
+    <a-entity camera look-controls position="0 1.6 3">
+      <!-- Cursor pentru interacțiuni mouse -->
+      <a-cursor color="#FFFFFF" position="0 0 -1"></a-cursor>
+    </a-entity>
+    <a-entity light="type: ambient; intensity: 1"></a-entity>
+    <a-entity light="type: directional; intensity: 0.5" position="0 1 0"></a-entity>
+
+    <!-- Player video principal -->
+    <a-video id="videoPlayer" src="#Alahuahbar" position="0 1.5 -2" width="2" height="1.2"></a-video>
+
+    <!-- Buton play/pause pentru video - poziționat corect lângă player -->
+    <a-plane id="playButton" color="#00ff00" position="1.2 1.5 -2" width="0.3" height="0.3" class="control-button" data-action="play" control-button></a-plane>
+    <a-text value="▶" position="1.2 1.5 -2.01" align="center" color="#000000" scale="0.2 0.2 1"></a-text>
+
+    <!-- Buton toggle carousel (turcoaz, stânga) - poziționat în stânga pentru accesibilitate -->
+    <a-plane id="carouselToggle" color="#00CED1" position="-2.3 0.7 -2" width="0.4" height="0.4" class="toggle-button" data-target="carousel" toggle-button></a-plane>
+
+    <!-- Buton toggle inventar (albastru, dreapta) - poziționat mai în dreapta -->
+    <a-plane id="inventoryToggle" color="#0066CC" position="2.0 -0.2 -2" width="0.3" height="0.3" class="toggle-button" data-target="inventory" toggle-button></a-plane>
+    <a-text value="I" position="2.0 -0.2 -2.01" align="center" color="#FFFFFF" scale="0.2 0.2 1"></a-text>
+
+    <!-- Container pentru carousel (va fi populat din script.js) -->
+    <a-entity id="carousel-container" position="0 0.7 -2"></a-entity>
+
+    <!-- Container pentru inventar (va fi populat din script.js) -->
+    <a-entity id="inventory-container" position="0 -0.2 -2"></a-entity>
+
+    <!-- Butoane de navigare carousel - în lateralul carouselului cu culori diferite -->
+    <a-plane id="leftArrow" color="#FF6B6B" position="-1.8 0.7 -2" width="0.4" height="0.4" class="nav-button" data-direction="left" nav-button visible="true"></a-plane>
+    <a-text value="◀" position="-1.8 0.7 -2.01" align="center" color="#FFFFFF" scale="0.25 0.25 1"></a-text>
+    
+    <a-plane id="rightArrow" color="#FF6B6B" position="1.8 0.7 -2" width="0.4" height="0.4" class="nav-button" data-direction="right" nav-button visible="true"></a-plane>
+    <a-text value="▶" position="1.8 0.7 -2.01" align="center" color="#FFFFFF" scale="0.25 0.25 1"></a-text>
+
+    <!-- Text pentru numele video-ului curent -->
+    <a-text id="videoTitle" value="Alahuahbar" position="0 2.2 -2" align="center" color="#ffffff" scale="0.5 0.5 1"></a-text>
+
+    <!-- Componenta de inițializare -->
+    <a-entity app-init></a-entity>
+  </a-scene>
+
+  <!-- Video tags ascunse pentru a le folosi ca sursă în a-video -->
+  <video id="Alahuahbar" src="public/videos/Alahuahbar.mp4" crossorigin="anonymous" loop style="display:none"></video>
+  <video id="MotoTestRide" src="public/videos/MotoTestRide.mp4" crossorigin="anonymous" loop style="display:none"></video>
+  <video id="OneHandRidingTransfagarasanTunnel" src="public/videos/OneHandRidingTransfagarasanTunnel.mp4" crossorigin="anonymous" loop style="display:none"></video>
+  <video id="QuackedTooHard" src="public/videos/QuackedTooHard.mp4" crossorigin="anonymous" loop style="display:none"></video>
+
+  <!-- Thumbnails ascunse pentru a le folosi ca texturi -->
+  <img id="Alahuahbar-thumb" src="public/thumbs/Alahuahbar.jpg" style="display:none" />
+  <img id="MotoTestRide-thumb" src="public/thumbs/MotoTestRide.jpg" style="display:none" />
+  <img id="OneHandRidingTransfagarasanTunnel-thumb" src="public/thumbs/OneHandRidingTransfagarasanTunnel.jpg" style="display:none" />
+  <img id="QuackedTooHard-thumb" src="public/thumbs/QuackedTooHard.jpg" style="display:none" />
+</body>
+</html> 

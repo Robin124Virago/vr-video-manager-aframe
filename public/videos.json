@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Alahuahbar",
+    "file": "videos/Alahuahbar.mp4",
+    "thumb": "thumbs/Alahuahbar.jpg"
+  },
+  {
+    "name": "MotoTestRide",
+    "file": "videos/MotoTestRide.mp4",
+    "thumb": "thumbs/MotoTestRide.jpg"
+  },
+  {
+    "name": "OneHandRidingTransfagarasanTunnel",
+    "file": "videos/OneHandRidingTransfagarasanTunnel.mp4",
+    "thumb": "thumbs/OneHandRidingTransfagarasanTunnel.jpg"
+  },
+  {
+    "name": "QuackedTooHard",
+    "file": "videos/QuackedTooHard.mp4",
+    "thumb": "thumbs/QuackedTooHard.jpg"
+  }
+]
