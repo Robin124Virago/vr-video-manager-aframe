@@ -7,7 +7,6 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎥</text></svg>">
   <link rel="stylesheet" href="style.css" />
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="script.js"></script>
 </head>
 <body>
   <a-scene>
@@ -19,12 +18,18 @@
     <a-entity light="type: ambient; intensity: 1"></a-entity>
     <a-entity light="type: directional; intensity: 0.5" position="0 1 0"></a-entity>
 
-    <!-- Player video principal -->
-    <a-video id="videoPlayer" src="#Alahuahbar" position="0 1.5 -2" width="2" height="1.2"></a-video>
+    <!-- Toggle pentru drag & drop grup video (deasupra video-ului) -->
+    <a-plane id="groupDragToggle" color="#FFD700" position="0 4 -2" width="0.5" height="0.2" class="toggle-button" group-drag-toggle raycastable material="transparent:true"></a-plane>
 
-    <!-- Buton play/pause pentru video - poziționat corect lângă player -->
-    <a-plane id="playButton" color="#00ff00" position="1.2 1.5 -2" width="0.3" height="0.3" class="control-button" data-action="play" control-button></a-plane>
-    <a-text value="▶" position="1.2 1.5 -2.01" align="center" color="#000000" scale="0.2 0.2 1"></a-text>
+    <!-- Grup video principal + buton play/pause -->
+    <a-entity id="video-group" position="0 0 0" raycastable>
+      <!-- Player video principal -->
+      <a-video id="videoPlayer" src="#Alahuahbar" position="0 1.5 -2" width="2" height="1.2"></a-video>
+
+      <!-- Buton play/pause pentru video - poziționat corect lângă player -->
+      <a-plane id="playButton" color="#00ff00" position="1.2 1.5 -2" width="0.3" height="0.3" class="control-button" data-action="play" control-button></a-plane>
+      <a-text value="▶" position="1.2 1.5 -2.01" align="center" color="#000000" scale="0.2 0.2 1"></a-text>
+    </a-entity>
 
     <!-- Buton toggle carousel (turcoaz, stânga) - poziționat în stânga pentru accesibilitate -->
     <a-plane id="carouselToggle" color="#00CED1" position="-2.3 0.7 -2" width="0.4" height="0.4" class="toggle-button" data-target="carousel" toggle-button></a-plane>
@@ -64,5 +69,7 @@
   <img id="MotoTestRide-thumb" src="public/thumbs/MotoTestRide.jpg" style="display:none" />
   <img id="OneHandRidingTransfagarasanTunnel-thumb" src="public/thumbs/OneHandRidingTransfagarasanTunnel.jpg" style="display:none" />
   <img id="QuackedTooHard-thumb" src="public/thumbs/QuackedTooHard.jpg" style="display:none" />
+
+  <script src="script.js"></script>
 </body>
 </html> 

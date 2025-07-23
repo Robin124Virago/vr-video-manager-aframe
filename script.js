@@ -15,6 +15,163 @@ let carouselVisible = true;
 let inventoryVisible = true;
 let isDragging = false;
 let draggedElement = null;
+// Flag global pentru Alt
+let isAltPressed = false;
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Alt') isAltPressed = true;
+});
+document.addEventListener('keyup', function(e) {
+  if (e.key === 'Alt') isAltPressed = false;
+});
+
+// Poziție globală mouse pentru drag & drop pe video group
+let lastMouse = {clientX: 0, clientY: 0};
+document.addEventListener('mousemove', function(e) {
+  lastMouse.clientX = e.clientX;
+  lastMouse.clientY = e.clientY;
+});
+
+// --- DRAG & DROP VIDEO GROUP ---
+// (șters logica veche cu document.querySelector pentru groupDragToggle și videoGroup)
+
+// Componentă A-Frame pentru toggle și drag & drop pe grupul video
+AFRAME.registerComponent('group-drag-toggle', {
+  init: function () {
+    const groupDragToggle = this.el;
+    const videoGroup = document.querySelector('#video-group');
+    let videoGroupDragEnabled = false;
+    let isDraggingVideoGroup = false;
+    let videoGroupInitialPosition = videoGroup ? videoGroup.getAttribute('position') : null;
+    let dragOffset = {x: 0, y: 0, z: 0};
+
+    console.log('[group-drag-toggle] INIT: component attached to', groupDragToggle);
+
+    // Feedback vizual la hover
+    groupDragToggle.addEventListener('mouseenter', function () {
+      groupDragToggle.setAttribute('opacity', 0.7);
+    });
+    groupDragToggle.addEventListener('mouseleave', function () {
+      groupDragToggle.setAttribute('opacity', 1);
+    });
+
+    // Toggle la click (ca la toggle-button)
+    groupDragToggle.addEventListener('click', function () {
+      console.log('[group-drag-toggle] CLICK on yellow button!');
+      videoGroupDragEnabled = !videoGroupDragEnabled;
+      groupDragToggle.setAttribute('color', videoGroupDragEnabled ? '#32CD32' : '#FFD700');
+      if (!videoGroupDragEnabled) {
+        // Revino la poziția inițială din HTML
+        videoGroup.setAttribute('position', '0 0 0');
+        console.log('[group-drag-toggle] Restored to initial position: 0 0 0');
+      }
+    });
+
+    // Variabile pentru drag sferic natural
+    let startAzimut = 0, startElevatie = 0, startMouseAzimut = 0, startMouseElevatie = 0;
+
+    if (videoGroup) {
+      videoGroup.addEventListener('mousedown', function (event) {
+        console.log('[group-drag-toggle] mousedown on video-group, dragEnabled:', videoGroupDragEnabled, 'isAltPressed:', isAltPressed);
+        if (!videoGroupDragEnabled || !isAltPressed) return;
+        isDraggingVideoGroup = true;
+        // Calculează azimut/elevatie video față de cameră
+        const camera = document.querySelector('a-scene').camera;
+        const camPos = camera.getWorldPosition(new THREE.Vector3());
+        const groupPos = videoGroup.object3D.getWorldPosition(new THREE.Vector3());
+        const dir = groupPos.clone().sub(camPos).normalize();
+        // Elevatie = arcsin(y/radius)
+        const radius = camPos.distanceTo(groupPos);
+        startElevatie = Math.asin(dir.y);
+        // Azimut = atan2(x, -z)
+        startAzimut = Math.atan2(dir.x, -dir.z);
+        // Mouse la start
+        const scene = document.querySelector('a-scene');
+        const rect = scene.canvas.getBoundingClientRect();
+        const nx = ((lastMouse.clientX - rect.left) / rect.width) * 2 - 1;
+        const ny = -((lastMouse.clientY - rect.top) / rect.height) * 2 + 1;
+        startMouseAzimut = nx * (Math.PI / 2);
+        startMouseElevatie = ny * (Math.PI / 4);
+        // Salvează și radius pentru drag
+        videoGroup._dragRadius = radius;
+        event.preventDefault();
+      });
+    }
+
+    document.addEventListener('mousemove', function (event) {
+      if (!isDraggingVideoGroup || !videoGroupDragEnabled) return;
+      const scene = document.querySelector('a-scene');
+      const camera = scene.camera;
+      const cursor = document.querySelector('a-cursor');
+      const radius = videoGroup._dragRadius || 2;
+      let hitPos = null;
+      // Încearcă să folosești ray-ul cursorului A-Frame
+      if (cursor && cursor.components && cursor.components.raycaster) {
+        // Obține ray-ul din camera
+        const raycaster = cursor.components.raycaster;
+        const camPos = camera.getWorldPosition(new THREE.Vector3());
+        const direction = new THREE.Vector3();
+        camera.getWorldDirection(direction);
+        // Intersectează cu sfera de radius 2
+        // Rezolvăm ecuația: |camPos + t*direction - camPos| = radius => t = radius
+        // Dar vrem intersecția cu sfera de radius față de camPos
+        // Ray: p = camPos + t*direction
+        // Sferă: |p - camPos| = radius => t = radius
+        // Deci p = camPos + radius * direction
+        hitPos = camPos.clone().add(direction.multiplyScalar(radius));
+      }
+      if (hitPos) {
+        videoGroup.setAttribute('position', `${hitPos.x} ${hitPos.y} ${hitPos.z}`);
+        videoGroup.object3D.lookAt(camera.getWorldPosition(new THREE.Vector3()));
+      } else {
+        // fallback: logica sferică clasică
+        const rect = scene.canvas.getBoundingClientRect();
+        const nx = ((lastMouse.clientX - rect.left) / rect.width) * 2 - 1;
+        const ny = -((lastMouse.clientY - rect.top) / rect.height) * 2 + 1;
+        const mouseAzimut = nx * (Math.PI / 2);
+        const mouseElevatie = ny * (Math.PI / 4);
+        const deltaAzimut = mouseAzimut - startMouseAzimut;
+        const deltaElevatie = mouseElevatie - startMouseElevatie;
+        const azimut = startAzimut + deltaAzimut;
+        const elevatie = startElevatie + deltaElevatie;
+        const camPos = camera.getWorldPosition(new THREE.Vector3());
+        const camQuat = camera.getWorldQuaternion(new THREE.Quaternion());
+        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camQuat);
+        const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camQuat);
+        const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camQuat);
+        const dir = forward.clone().multiplyScalar(Math.cos(elevatie) * Math.cos(azimut))
+          .add(up.clone().multiplyScalar(Math.sin(elevatie)))
+          .add(right.clone().multiplyScalar(Math.cos(elevatie) * Math.sin(azimut)));
+        dir.normalize();
+        const x = camPos.x + radius * dir.x;
+        const y = camPos.y + radius * dir.y;
+        const z = camPos.z + radius * dir.z;
+        videoGroup.setAttribute('position', `${x} ${y} ${z}`);
+        videoGroup.object3D.lookAt(camPos);
+      }
+    });
+
+    document.addEventListener('mouseup', function () {
+      if (!isDraggingVideoGroup) return;
+      isDraggingVideoGroup = false;
+    });
+  }
+});
+
+// Helper: convertește coordonatele mouse-ului în world position pe planul z=-2
+function getMouseWorldPosition(event) {
+  const scene = document.querySelector('a-scene');
+  const rect = scene.canvas.getBoundingClientRect();
+  const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  const camera = scene.camera;
+  // Proiectează un ray din cameră
+  const rayOrigin = camera.getWorldPosition(new THREE.Vector3());
+  const rayDirection = new THREE.Vector3(x, y, -1).unproject(camera).sub(rayOrigin).normalize();
+  // Intersectează cu planul z=-2
+  const t = (-2 - rayOrigin.z) / rayDirection.z;
+  const worldPos = rayOrigin.clone().add(rayDirection.multiplyScalar(t));
+  return {x: worldPos.x, y: worldPos.y, z: -2};
+}
 
 console.log('Initial currentVideoIndex:', currentVideoIndex, 'videos.length:', videos.length);
 
